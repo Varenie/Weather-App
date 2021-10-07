@@ -13,4 +13,6 @@ interface RetrofitService {
                           @Query("units") units: String = "metric",
                           @Query("lang") lang: String = "ru"
     ): Call<WeatherAll>
+
+
 }

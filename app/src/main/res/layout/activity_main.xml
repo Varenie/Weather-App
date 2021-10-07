@@ -39,8 +39,8 @@
 
     <ImageView
         android:id="@+id/iv_weather_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:src="@drawable/example"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -93,6 +93,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/rv_hourly_weather" />
+        app:layout_constraintTop_toBottomOf="@+id/rv_hourly_weather"
+        tools:listitem="@layout/recycler_item_daily_temp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

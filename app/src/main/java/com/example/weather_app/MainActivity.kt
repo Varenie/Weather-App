@@ -8,11 +8,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.weather_app.Adapters.RecyclerDailyAdapter
 import com.example.weather_app.Adapters.RecyclerHourlyAdapter
+import com.example.weather_app.Models.Main
 import com.example.weather_app.Models.Weather
 import com.example.weather_app.Models.WeatherAll
 import com.example.weather_app.Retrofit.Common
 import com.example.weather_app.Retrofit.RetrofitService
 import com.example.weather_app.databinding.ActivityMainBinding
+import com.squareup.picasso.Picasso
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -24,6 +26,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     lateinit var mService: RetrofitService
 
+    private val TAG = "MYCHECK"
+    private val BASE_URL_ICON = "https://openweathermap.org/img/wn/"
+    private val DEGREE: String = "°"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +39,40 @@ class MainActivity : AppCompatActivity() {
 
         mService = Common.retrofitService
 
+        setRecyclers()
+        getWeather()
+
+
+    }
+
+    private fun getWeather() {
+        val apiKey = this.resources.getString(R.string.api_key)
+
+
+        mService.getCurrentWeather("москва", apiKey).enqueue(object : Callback<WeatherAll> {
+            override fun onFailure(call: Call<WeatherAll>, t: Throwable) {
+                Log.e(TAG, t.message.toString())
+            }
+
+            override fun onResponse(call: Call<WeatherAll>, response: Response<WeatherAll>) {
+                Log.e(TAG, response.body()?.main.toString())
+
+                val weatherAll = response.body()
+
+                weatherAll?.let {
+                    setCurrentWeather(it.weather, it.main, it.name)
+                }
+
+//                getHourlyWeather()
+//                getDailyWeather()
+            }
+        })
+
+
+
+    }
+
+    fun setRecyclers() {
         val recyclerHourly = binding.rvHourlyWeather
         val recyclerDaily = binding.rvDailyTemp
 
@@ -46,24 +85,27 @@ class MainActivity : AppCompatActivity() {
         recyclerDaily.setHasFixedSize(true)
         recyclerHourly.adapter = adapterHourly
         recyclerDaily.adapter = adapterDaily
-
     }
 
-    private fun getWeather() {
-        val apiKey = this.resources.getString(R.string.api_key)
+    private fun setCurrentWeather(weather: List<Weather>, main: Main, city: String) {
+        val tvCity = binding.tvCity
 
+        val icon = binding.ivWeatherIcon
+        val description = binding.tvWeatherDescription
 
-        mService.getCurrentWeather("москва", apiKey).enqueue(object : Callback<WeatherAll> {
-            override fun onFailure(call: Call<WeatherAll>, t: Throwable) {
-                Log.e("MYTAG", t.message.toString())
-            }
+        val currentTemp = binding.tvCurrentTemp
+        val tempMinMax = binding.tvMinMaxTemp
 
-            override fun onResponse(call: Call<WeatherAll>, response: Response<WeatherAll>) {
-                Log.e("MYTAG", response.body()?.main.toString())
-            }
-        })
+        val url = "$BASE_URL_ICON${weather[0].icon}.png"
+        Log.d(TAG, url)
 
+        tvCity.text = city
 
+        Picasso.get().load(url).fit().error(R.drawable.ic_launcher_background).into(icon)
+        description.text = weather[0].description
+
+        currentTemp.text = "${main.temp.toInt()}$DEGREE"
+        tempMinMax.text = "${main.temp_max.toInt()}$DEGREE/${main.temp_min.toInt()}$DEGREE"
     }
 }
 
