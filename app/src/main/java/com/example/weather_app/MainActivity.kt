@@ -5,6 +5,9 @@ import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.weather_app.Adapters.RecyclerDailyAdapter
+import com.example.weather_app.Adapters.RecyclerHourlyAdapter
 import com.example.weather_app.Models.Weather
 import com.example.weather_app.Models.WeatherAll
 import com.example.weather_app.Retrofit.Common
@@ -27,9 +30,22 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        supportActionBar?.hide()
 
         mService = Common.retrofitService
 
+        val recyclerHourly = binding.rvHourlyWeather
+        val recyclerDaily = binding.rvDailyTemp
+
+        val adapterHourly = RecyclerHourlyAdapter()
+        val adapterDaily = RecyclerDailyAdapter()
+
+        recyclerHourly.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        recyclerDaily.layoutManager = LinearLayoutManager(this)
+        recyclerHourly.setHasFixedSize(true)
+        recyclerDaily.setHasFixedSize(true)
+        recyclerHourly.adapter = adapterHourly
+        recyclerDaily.adapter = adapterDaily
 
     }
 
