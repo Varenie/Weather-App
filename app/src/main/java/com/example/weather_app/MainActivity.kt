@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     lateinit var mService: RetrofitService
-    lateinit var textView: TextView
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,12 +30,7 @@ class MainActivity : AppCompatActivity() {
 
         mService = Common.retrofitService
 
-        textView = binding.textView
-        textView.text = "Tap on me!"
 
-        textView.setOnClickListener {
-            getWeather()
-        }
     }
 
     private fun getWeather() {
@@ -49,7 +44,6 @@ class MainActivity : AppCompatActivity() {
 
             override fun onResponse(call: Call<WeatherAll>, response: Response<WeatherAll>) {
                 Log.e("MYTAG", response.body()?.main.toString())
-                textView.text = response.body().toString()
             }
         })
 
