@@ -1,17 +1,26 @@
 package com.example.weather_app
 
 import android.os.Bundle
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import android.util.Log
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
+import com.example.weather_app.Models.Weather
+import com.example.weather_app.Models.WeatherAll
+import com.example.weather_app.Retrofit.Common
+import com.example.weather_app.Retrofit.RetrofitService
 import com.example.weather_app.databinding.ActivityMainBinding
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import kotlin.contracts.Returns
+
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    lateinit var mService: RetrofitService
+    lateinit var textView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,17 +28,32 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val navView: BottomNavigationView = binding.navView
+        mService = Common.retrofitService
 
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        val appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications
-            )
-        )
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
+        textView = binding.textView
+        textView.text = "Tap on me!"
+
+        textView.setOnClickListener {
+            getWeather()
+        }
+    }
+
+    private fun getWeather() {
+        val apiKey = this.resources.getString(R.string.api_key)
+
+
+        mService.getCurrentWeather("москва", apiKey).enqueue(object : Callback<WeatherAll> {
+            override fun onFailure(call: Call<WeatherAll>, t: Throwable) {
+                Log.e("MYTAG", t.message.toString())
+            }
+
+            override fun onResponse(call: Call<WeatherAll>, response: Response<WeatherAll>) {
+                Log.e("MYTAG", response.body()?.main.toString())
+                textView.text = response.body().toString()
+            }
+        })
+
+
     }
 }
+

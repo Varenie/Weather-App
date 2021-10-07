@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Weather-app</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
+    <string name="api_key">7ceeee31190b70065acc0ead0d6aecb7</string>
+    <string name="city">Москва</string>
+    <string name="temp">-2°</string>
+    <string name="weather_description">Переменная облачность</string>
 </resources>
