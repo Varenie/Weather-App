@@ -2,6 +2,7 @@ package com.example.weather_app
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.SearchView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -42,14 +43,32 @@ class MainActivity : AppCompatActivity() {
         setRecyclers()
         getWeather()
 
+        val searchView = binding.searchView
+
+        searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+
+                query?.let {
+                    getWeather(it)
+                }
+
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return false
+            }
+
+        })
 
     }
 
-    private fun getWeather() {
+    //пока нет геолокации, по дефолту Мосвка
+    private fun getWeather(city: String = "москва") {
         val apiKey = this.resources.getString(R.string.api_key)
 
 
-        mService.getCurrentWeather("москва", apiKey).enqueue(object : Callback<WeatherAll> {
+        mService.getCurrentWeather(city, apiKey).enqueue(object : Callback<WeatherAll> {
             override fun onFailure(call: Call<WeatherAll>, t: Throwable) {
                 Log.e(TAG, t.message.toString())
             }
