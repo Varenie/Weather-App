@@ -1,6 +1,7 @@
 package com.example.weather_app.Adapters
 
 import Daily
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -18,10 +19,10 @@ class RecyclerDailyAdapter(val daily: List<Daily>): RecyclerView.Adapter<Recycle
         val temp = binding.tvDailyTemp
 
         private val BASE_URL_ICON = "https://openweathermap.org/img/wn/"
-        private val dateFormat = SimpleDateFormat("EEE, dd MMM.", Locale.ENGLISH)
+        private val dateFormat = SimpleDateFormat("EE, MMM dd", Locale.ENGLISH)
 
         fun bind(daily: Daily) {
-            date.text = dateFormat.format(daily.dt)
+            date.text = dateFormat.format(Date(daily.dt.toLong() * 1000))
 
             val url = "$BASE_URL_ICON${daily.weather[0].icon}.png"
             Picasso.get().load(url).into(icon)
