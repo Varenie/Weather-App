@@ -1,28 +1,47 @@
 package com.example.weather_app.Adapters
 
+import Daily
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.weather_app.R
+import com.example.weather_app.databinding.RecyclerItemDailyTempBinding
+import com.squareup.picasso.Picasso
+import java.text.SimpleDateFormat
+import java.util.*
 
-class RecyclerDailyAdapter: RecyclerView.Adapter<RecyclerDailyAdapter.MyViewHolder>() {
-    class MyViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
-        fun bind() {}
+class RecyclerDailyAdapter(val daily: List<Daily>): RecyclerView.Adapter<RecyclerDailyAdapter.MyViewHolder>() {
+    private var binding: RecyclerItemDailyTempBinding? = null
+
+    class MyViewHolder(binding: RecyclerItemDailyTempBinding): RecyclerView.ViewHolder(binding.root) {
+        val date = binding.tvDate
+        val icon = binding.ivIconDaily
+        val temp = binding.tvDailyTemp
+
+        private val BASE_URL_ICON = "https://openweathermap.org/img/wn/"
+        private val dateFormat = SimpleDateFormat("EEE, dd MMM.", Locale.ENGLISH)
+
+        fun bind(daily: Daily) {
+            date.text = dateFormat.format(daily.dt)
+
+            val url = "$BASE_URL_ICON${daily.weather[0].icon}.png"
+            Picasso.get().load(url).into(icon)
+
+            temp.text = daily.temp.day.toInt().toString()
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val view = inflater.inflate(R.layout.recycler_item_daily_temp, parent, false)
+        binding = RecyclerItemDailyTempBinding.inflate(inflater, parent, false)
 
-        return MyViewHolder(view)
+        return MyViewHolder(binding!!)
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        holder.bind()
+        holder.bind(daily[position])
     }
 
     override fun getItemCount(): Int {
-        return 10
+        return daily.size
     }
 }

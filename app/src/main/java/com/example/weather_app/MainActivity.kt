@@ -1,14 +1,16 @@
 package com.example.weather_app
 
+import Daily
+import Hourly
+import HourlyDaily
 import android.os.Bundle
 import android.util.Log
 import android.widget.SearchView
-import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.weather_app.Adapters.RecyclerDailyAdapter
 import com.example.weather_app.Adapters.RecyclerHourlyAdapter
+import com.example.weather_app.Models.Coord
 import com.example.weather_app.Models.Main
 import com.example.weather_app.Models.Weather
 import com.example.weather_app.Models.WeatherAll
@@ -19,7 +21,6 @@ import com.squareup.picasso.Picasso
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import kotlin.contracts.Returns
 
 
 class MainActivity : AppCompatActivity() {
@@ -31,6 +32,8 @@ class MainActivity : AppCompatActivity() {
     private val BASE_URL_ICON = "https://openweathermap.org/img/wn/"
     private val DEGREE: String = "°"
 
+    private var apiKey = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -39,8 +42,8 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.hide()
 
         mService = Common.retrofitService
+        apiKey = this.resources.getString(R.string.api_key)
 
-        setRecyclers()
         getWeather()
 
         val searchView = binding.searchView
@@ -65,25 +68,23 @@ class MainActivity : AppCompatActivity() {
 
     //пока нет геолокации, по дефолту Мосвка
     private fun getWeather(city: String = "москва") {
-        val apiKey = this.resources.getString(R.string.api_key)
-
-
         mService.getCurrentWeather(city, apiKey).enqueue(object : Callback<WeatherAll> {
             override fun onFailure(call: Call<WeatherAll>, t: Throwable) {
                 Log.e(TAG, t.message.toString())
             }
 
             override fun onResponse(call: Call<WeatherAll>, response: Response<WeatherAll>) {
-                Log.e(TAG, response.body()?.main.toString())
+                Log.d(TAG, response.body()?.main.toString())
 
                 val weatherAll = response.body()
 
                 weatherAll?.let {
                     setCurrentWeather(it.weather, it.main, it.name)
+
+                    getHourlyDailyWeather(it.coord)
                 }
 
-//                getHourlyWeather()
-//                getDailyWeather()
+
             }
         })
 
@@ -91,12 +92,31 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun setRecyclers() {
+
+
+    private fun getHourlyDailyWeather(coord: Coord) {
+        mService.getHourlyDailyWeather(lat = coord.lat, lon = coord.lon, apiKey = apiKey).enqueue(object: Callback<HourlyDaily> {
+            override fun onResponse(call: Call<HourlyDaily>, response: Response<HourlyDaily>) {
+                val hourlyDaily = response.body()
+
+                hourlyDaily?.let {
+                    setRecyclers(it.hourly, it.daily)
+                }
+            }
+
+            override fun onFailure(call: Call<HourlyDaily>, t: Throwable) {
+                Log.e("${TAG}HOURLY", t.message.toString())
+            }
+
+        })
+    }
+
+    fun setRecyclers(hourly: List<Hourly>, daily: List<Daily>) {
         val recyclerHourly = binding.rvHourlyWeather
         val recyclerDaily = binding.rvDailyTemp
 
-        val adapterHourly = RecyclerHourlyAdapter()
-        val adapterDaily = RecyclerDailyAdapter()
+        val adapterHourly = RecyclerHourlyAdapter(hourly)
+        val adapterDaily = RecyclerDailyAdapter(daily)
 
         recyclerHourly.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         recyclerDaily.layoutManager = LinearLayoutManager(this)
@@ -125,6 +145,7 @@ class MainActivity : AppCompatActivity() {
 
         currentTemp.text = "${main.temp.toInt()}$DEGREE"
         tempMinMax.text = "${main.temp_max.toInt()}$DEGREE/${main.temp_min.toInt()}$DEGREE"
+
     }
 }
 

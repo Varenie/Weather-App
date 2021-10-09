@@ -1,30 +1,48 @@
 package com.example.weather_app.Adapters
 
+import Hourly
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.weather_app.R
+import com.example.weather_app.databinding.RecyclerItemHourlyTempBinding
+import com.squareup.picasso.Picasso
+import java.text.SimpleDateFormat
+import java.util.*
 
-class RecyclerHourlyAdapter: RecyclerView.Adapter<RecyclerHourlyAdapter.MyViewHolder>() {
+class RecyclerHourlyAdapter(val hourly: List<Hourly>): RecyclerView.Adapter<RecyclerHourlyAdapter.MyViewHolder>() {
+    private var binding: RecyclerItemHourlyTempBinding? = null
 
-    class MyViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
-        fun bind() {}
+    class MyViewHolder(binding: RecyclerItemHourlyTempBinding): RecyclerView.ViewHolder(binding.root) {
+        val time = binding.tvTime
+        val icon = binding.ivIconHourly
+        val temp = binding.tvHourlyTemp
+
+        private val BASE_URL_ICON = "https://openweathermap.org/img/wn/"
+        private val hourFormat = SimpleDateFormat("HH:mm", Locale.ENGLISH)
+
+        fun bind(hourly: Hourly) {
+            time.text = hourFormat.format(hourly.dt)
+
+            val url  ="$BASE_URL_ICON${hourly.weather[0].icon}.png"
+            Picasso.get().load(url).into(icon)
+
+            temp.text = hourly.temp.toInt().toString()
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val view = inflater.inflate(R.layout.recycler_item_hourly_temp, parent, false)
+        binding = RecyclerItemHourlyTempBinding.inflate(inflater, parent, false)
 
-        return MyViewHolder(view)
+        return MyViewHolder(binding!!)
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        holder.bind()
+        holder.bind(hourly[position])
     }
 
     override fun getItemCount(): Int {
-        return 15
+        return hourly.size
     }
 
 }
