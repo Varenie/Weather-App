@@ -19,6 +19,7 @@ class RecyclerHourlyAdapter(val hourly: List<Hourly>): RecyclerView.Adapter<Recy
 
         private val BASE_URL_ICON = "https://openweathermap.org/img/wn/"
         private val hourFormat = SimpleDateFormat("HH:mm", Locale.ENGLISH)
+        private val DEGREE: String = "°"
 
         fun bind(hourly: Hourly) {
             time.text = hourFormat.format(Date(hourly.dt.toLong() * 1000))
@@ -26,7 +27,7 @@ class RecyclerHourlyAdapter(val hourly: List<Hourly>): RecyclerView.Adapter<Recy
             val url  ="$BASE_URL_ICON${hourly.weather[0].icon}.png"
             Picasso.get().load(url).into(icon)
 
-            temp.text = hourly.temp.toInt().toString()
+            temp.text = "${hourly.temp.toInt()}$DEGREE"
         }
     }
 

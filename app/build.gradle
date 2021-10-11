@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'org.jetbrains.dokka'
 }
 
 android {
@@ -54,4 +55,10 @@ dependencies {
 
     //Picasso
     implementation 'com.squareup.picasso:picasso:2.71828'
+
+
+}
+
+tasks.dokkaHtml.configure {
+    outputDirectory.set(file("../documentation/html"))
 }

@@ -10,6 +10,13 @@ import com.squareup.picasso.Picasso
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * A group of *members*.
+ *
+ * This class has no useful logic; it's just a documentation example.
+ *
+ * @param daily the type of a member in this group.
+ */
 class RecyclerDailyAdapter(val daily: List<Daily>): RecyclerView.Adapter<RecyclerDailyAdapter.MyViewHolder>() {
     private var binding: RecyclerItemDailyTempBinding? = null
 
@@ -19,7 +26,8 @@ class RecyclerDailyAdapter(val daily: List<Daily>): RecyclerView.Adapter<Recycle
         val temp = binding.tvDailyTemp
 
         private val BASE_URL_ICON = "https://openweathermap.org/img/wn/"
-        private val dateFormat = SimpleDateFormat("EE, MMM dd", Locale.ENGLISH)
+        private val dateFormat = SimpleDateFormat("EE, MMM dd")
+        private val DEGREE: String = "°"
 
         fun bind(daily: Daily) {
             date.text = dateFormat.format(Date(daily.dt.toLong() * 1000))
@@ -27,7 +35,7 @@ class RecyclerDailyAdapter(val daily: List<Daily>): RecyclerView.Adapter<Recycle
             val url = "$BASE_URL_ICON${daily.weather[0].icon}.png"
             Picasso.get().load(url).into(icon)
 
-            temp.text = daily.temp.day.toInt().toString()
+            temp.text = "${daily.temp.day.toInt()}$DEGREE"
         }
     }
 
