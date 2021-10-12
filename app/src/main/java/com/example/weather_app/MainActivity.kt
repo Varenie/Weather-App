@@ -3,10 +3,20 @@ package com.example.weather_app
 import Daily
 import Hourly
 import HourlyDaily
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import android.widget.SearchView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.weather_app.Adapters.RecyclerDailyAdapter
 import com.example.weather_app.Adapters.RecyclerHourlyAdapter
@@ -17,6 +27,7 @@ import com.example.weather_app.Models.WeatherAll
 import com.example.weather_app.Retrofit.Common
 import com.example.weather_app.Retrofit.RetrofitService
 import com.example.weather_app.databinding.ActivityMainBinding
+import com.google.android.gms.location.*
 import com.squareup.picasso.Picasso
 import retrofit2.Call
 import retrofit2.Callback
@@ -27,7 +38,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     lateinit var mService: RetrofitService
+    lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    lateinit var locationRequest: LocationRequest
 
+    private val PERMISSION_ID = 101
     private val TAG = "MYCHECK"
     private val BASE_URL_ICON = "https://openweathermap.org/img/wn/"
     private val DEGREE: String = "°"
@@ -43,7 +57,9 @@ class MainActivity : AppCompatActivity() {
 
         mService = Common.retrofitService
         apiKey = this.resources.getString(R.string.api_key)
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
+        getLastLocation()
         getWeather()
 
         val searchView = binding.searchView
@@ -147,5 +163,88 @@ class MainActivity : AppCompatActivity() {
         tempMinMax.text = "${main.temp_max.toInt()}$DEGREE/${main.temp_min.toInt()}$DEGREE"
 
     }
+
+    private fun checkPermissions(): Boolean {
+
+        if ( ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        ){
+            return true
+        }
+
+        return false
+    }
+
+    private fun requestPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+            PERMISSION_ID
+        )
+    }
+
+    private fun isLocationEnabled(): Boolean {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        //for debug
+        if(requestCode == PERMISSION_ID) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "You have permissiond")
+            }
+        }
+    }
+
+
+    @SuppressLint("MissingPermission")
+    private fun getLastLocation() {
+        if (checkPermissions()) {
+            if (isLocationEnabled()) {
+                fusedLocationProviderClient.lastLocation.addOnCompleteListener { task ->
+                    val location: Location = task.result
+
+                    if (location == null) {
+                        getNewLocation()
+                    } else {
+                        Log.d(TAG, "bb ${location?.latitude} b ${location?.altitude}")
+                    }
+                }
+            } else {
+                Toast.makeText(this, "Enable Location", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            requestPermission()
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun getNewLocation() {
+        locationRequest = LocationRequest()
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        locationRequest.interval = 0
+        locationRequest.fastestInterval = 0
+        locationRequest.numUpdates = 2
+
+
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
+    }
+
+    private val locationCallback = object: LocationCallback() {
+        override fun onLocationResult(p0: LocationResult) {
+            super.onLocationResult(p0)
+            val lastLocation: Location? = p0.lastLocation
+            Log.d(TAG, "${lastLocation?.latitude} b ${lastLocation?.altitude}")
+        }
+    }
+
 }
 
