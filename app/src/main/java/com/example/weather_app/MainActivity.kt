@@ -29,6 +29,7 @@ import com.example.weather_app.Retrofit.RetrofitService
 import com.example.weather_app.databinding.ActivityMainBinding
 import com.google.android.gms.location.*
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.delay
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -60,7 +61,6 @@ class MainActivity : AppCompatActivity() {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
         getLastLocation()
-        getWeather()
 
         val searchView = binding.searchView
 
@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
             override fun onQueryTextSubmit(query: String?): Boolean {
 
                 query?.let {
-                    getWeather(it)
+                    getWeatherByName(it)
                 }
 
                 return false
@@ -83,8 +83,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     //пока нет геолокации, по дефолту Мосвка
-    private fun getWeather(city: String = "москва") {
-        mService.getCurrentWeather(city, apiKey).enqueue(object : Callback<WeatherAll> {
+    private fun getWeatherByName(city: String = "москва") {
+        mService.getCurrentWeatherByCityName(city, apiKey).enqueue(object : Callback<WeatherAll> {
             override fun onFailure(call: Call<WeatherAll>, t: Throwable) {
                 Log.e(TAG, t.message.toString())
             }
@@ -103,9 +103,28 @@ class MainActivity : AppCompatActivity() {
 
             }
         })
+    }
+
+    private fun getWeatherByCoord(lat: Double, lon: Double) {
+        mService.getCurrentWeatherByCoord(lat, lon, apiKey).enqueue(object : Callback<WeatherAll> {
+            override fun onFailure(call: Call<WeatherAll>, t: Throwable) {
+                Log.e(TAG, t.message.toString())
+            }
+
+            override fun onResponse(call: Call<WeatherAll>, response: Response<WeatherAll>) {
+                Log.d(TAG, response.body()?.main.toString())
+
+                val weatherAll = response.body()
+
+                weatherAll?.let {
+                    setCurrentWeather(it.weather, it.main, it.name)
+
+                    getHourlyDailyWeather(it.coord)
+                }
 
 
-
+            }
+        })
     }
 
 
@@ -215,7 +234,7 @@ class MainActivity : AppCompatActivity() {
                     if (location == null) {
                         getNewLocation()
                     } else {
-                        Log.d(TAG, "bb ${location?.latitude} b ${location?.altitude}")
+                        getWeatherByCoord(location.latitude, location.longitude)
                     }
                 }
             } else {
@@ -223,6 +242,8 @@ class MainActivity : AppCompatActivity() {
             }
         } else {
             requestPermission()
+
+            getLastLocation()
         }
     }
 
@@ -242,8 +263,15 @@ class MainActivity : AppCompatActivity() {
         override fun onLocationResult(p0: LocationResult) {
             super.onLocationResult(p0)
             val lastLocation: Location? = p0.lastLocation
-            Log.d(TAG, "${lastLocation?.latitude} b ${lastLocation?.altitude}")
+            lastLocation?.let {
+                getWeatherByCoord(it.latitude, it.longitude)
+            }
+
         }
+    }
+
+    override fun onBackPressed() {
+        getLastLocation()
     }
 
 }
